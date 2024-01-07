@@ -33,7 +33,7 @@ return {
         format = lspkind.cmp_format({
           mode = "symbol_text",
           maxwidth = 50,
-          symbol_map = { Copilot = '' },
+          symbol_map = { Copilot = "" },
           menu = {
             buffer = "[Buffer]",
             nvim_lsp = "[LSP]",
