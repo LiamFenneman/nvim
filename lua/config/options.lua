@@ -38,3 +38,6 @@ vim.wo.number = true
 vim.wo.relativenumber = true
 vim.wo.signcolumn = "yes"
 vim.wo.colorcolumn = "100"
+
+-- Custom toggle for copilot
+vim.g.copilot = true

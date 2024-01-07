@@ -33,6 +33,7 @@ return {
         format = lspkind.cmp_format({
           mode = "symbol_text",
           maxwidth = 50,
+          symbol_map = { Copilot = '' },
           menu = {
             buffer = "[Buffer]",
             nvim_lsp = "[LSP]",
@@ -71,6 +72,7 @@ return {
         end, { "i", "s" }),
       }),
       sources = {
+        { name = "copilot" },
         { name = "nvim_lsp" },
         { name = "nvim_lsp_signature_help" },
         { name = "luasnip" },
