@@ -2,7 +2,7 @@ return {
   "hrsh7th/nvim-cmp",
   dependencies = {
     -- Snippets
-    "L3MON4D3/LuaSnip",
+    { "L3MON4D3/LuaSnip", version = "v2.2.0" },
     "saadparwaiz1/cmp_luasnip",
     "rafamadriz/friendly-snippets",
 
