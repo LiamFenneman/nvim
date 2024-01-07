@@ -39,5 +39,7 @@ vim.wo.relativenumber = true
 vim.wo.signcolumn = "yes"
 vim.wo.colorcolumn = "100"
 
--- Custom toggle for copilot
+-- Should GitHub Copilot be enabled
 vim.g.copilot = true
+-- Should Mason be enabled (disable when using NixOS)
+vim.g.mason = false
