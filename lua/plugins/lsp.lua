@@ -44,10 +44,10 @@ vim.api.nvim_create_autocmd("LspAttach", {
     -- nmap("]d", vim.diagnostic.goto_next, "Go to next diagnostic message")
 
     -- Create a command `:Format` local to the LSP buffer
-    vim.api.nvim_buf_create_user_command(ev.buf, "Format", function(_)
-      vim.lsp.buf.format()
-    end, { desc = "LSP: Format current buffer" })
-    nmap("<leader>f", vim.lsp.buf.format, "[F]ormat current buffer")
+    -- vim.api.nvim_buf_create_user_command(ev.buf, "Format", function(_)
+    --   vim.lsp.buf.format()
+    -- end, { desc = "LSP: Format current buffer" })
+    -- nmap("<leader>f", vim.lsp.buf.format, "[F]ormat current buffer")
   end,
 })
 
