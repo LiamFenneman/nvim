@@ -1,102 +1,102 @@
-local ensure_installed = {
-  "lua_ls",
-  "rust_analyzer",
-  "tsserver",
-}
-
--- nvim-cmp supports additional completion capabilities, so broadcast that to servers
-local capabilities = vim.lsp.protocol.make_client_capabilities()
-capabilities = require("cmp_nvim_lsp").default_capabilities(capabilities)
-
-local handlers = {
-  function(server_name)
-    require("lspconfig")[server_name].setup({
-      capabilities = capabilities,
-    })
-  end,
-}
-
-vim.api.nvim_create_autocmd("LspAttach", {
-  group = vim.api.nvim_create_augroup("UserLspConfig", {}),
-  callback = function(ev)
-    local nmap = function(keys, func, desc)
-      if desc then
-        desc = "LSP: " .. desc
-      end
-
-      vim.keymap.set("n", keys, func, { buffer = ev.buf, desc = desc })
-    end
-
-    nmap("<leader>rn", vim.lsp.buf.rename, "[R]e[n]ame")
-    nmap("<leader>ca", vim.lsp.buf.code_action, "[C]ode [A]ction")
-
-    nmap("gd", vim.lsp.buf.definition, "[G]oto [D]efinition")
-    nmap("gD", vim.lsp.buf.declaration, "[G]oto [D]eclaration")
-    nmap("gr", require("telescope.builtin").lsp_references, "[G]oto [R]eferences")
-    nmap("gI", vim.lsp.buf.implementation, "[G]oto [I]mplementation")
-
-    nmap("K", vim.lsp.buf.hover, "Hover Documentation")
-    nmap("<C-k>", vim.lsp.buf.signature_help, "Signature Documentation")
-
-    nmap("gl", vim.diagnostic.open_float, "Open diagnositic floating window")
-    -- See: trouble.lua
-    -- nmap("[d", vim.diagnostic.goto_prev, "Go to previous diagnostic message")
-    -- nmap("]d", vim.diagnostic.goto_next, "Go to next diagnostic message")
-
-    -- Create a command `:Format` local to the LSP buffer
-    -- vim.api.nvim_buf_create_user_command(ev.buf, "Format", function(_)
-    --   vim.lsp.buf.format()
-    -- end, { desc = "LSP: Format current buffer" })
-    -- nmap("<leader>f", vim.lsp.buf.format, "[F]ormat current buffer")
-  end,
-})
-
 return {
-  "neovim/nvim-lspconfig",
-  priority = 40,
-  dependencies = {
-    "williamboman/mason.nvim",
-    "williamboman/mason-lspconfig.nvim",
-    "j-hui/fidget.nvim",
-  },
-  config = function()
-    if vim.g.mason then
-      require("mason").setup()
-      require("mason-lspconfig").setup({
-        ensure_installed = ensure_installed,
-        automatic_installation = { exclude = { "rust_analyzer" } },
-        handlers = handlers,
-      })
-    end
-    require("fidget").setup()
+    "neovim/nvim-lspconfig",
+    dependencies = {
+        { "j-hui/fidget.nvim", opts = {} },
+    },
+    config = function()
+        vim.api.nvim_create_autocmd("LspAttach", {
+            group = vim.api.nvim_create_augroup("lsp-attach", { clear = true }),
+            callback = function(event)
+                local map = function(keys, func, desc)
+                    vim.keymap.set("n", keys, func, { buffer = event.buf, desc = "LSP: " .. desc })
+                end
+                map("gd", require("telescope.builtin").lsp_definitions, "[G]oto [D]efinition")
+                map("gr", require("telescope.builtin").lsp_references, "[G]oto [R]eferences")
+                map("gI", require("telescope.builtin").lsp_implementations, "[G]oto [I]mplementation")
+                map("<leader>D", require("telescope.builtin").lsp_type_definitions, "Type [D]efinition")
+                map("<leader>ds", require("telescope.builtin").lsp_document_symbols, "[D]ocument [S]ymbols")
+                map("<leader>ws", require("telescope.builtin").lsp_dynamic_workspace_symbols, "[W]orkspace [S]ymbols")
+                map("<leader>rn", vim.lsp.buf.rename, "[R]e[n]ame")
+                map("<leader>ca", function()
+                    vim.lsp.buf.code_action({ context = { only = { "quickfix", "refactor", "source" } } })
+                end, "[C]ode [A]ction")
+                map("K", vim.lsp.buf.hover, "Hover Documentation")
+                map("<C-k>", vim.lsp.buf.signature_help, "Signature Documentation")
+                map("gD", vim.lsp.buf.declaration, "[G]oto [D]eclaration")
 
-    -- manually setup rust_analyzer since its not being handled by Mason
-    require("lspconfig").rust_analyzer.setup({
-      capabilities = capabilities,
-      settings = {
-        ["rust-analyzer"] = {
-          check = {
-            command = "clippy",
-          },
-        },
-      },
-    })
-    require("lspconfig").lua_ls.setup({
-      capabilities = capabilities,
-      settings = {
-        Lua = {
-          runtime = {
-            version = "LuaJIT",
-          },
-          workspace = {
-            checkThirdParty = false,
-            library = {
-              vim.env.VIMRUNTIME,
+                -- The following two autocommands are used to highlight references of the
+                -- word under your cursor when your cursor rests there for a little while.
+                --    See `:help CursorHold` for information about when this is executed
+                --
+                -- When you move your cursor, the highlights will be cleared (the second autocommand).
+                -- vim.api.nvim_create_autocmd({ "CursorHold", "CursorHoldI" }, {
+                --     buffer = event.buf,
+                --     callback = vim.lsp.buf.document_highlight,
+                -- })
+                --
+                -- vim.api.nvim_create_autocmd({ "CursorMoved", "CursorMovedI" }, {
+                --     buffer = event.buf,
+                --     callback = vim.lsp.buf.clear_references,
+                -- })
+            end,
+        })
+
+        local capabilities = vim.lsp.protocol.make_client_capabilities()
+        capabilities = vim.tbl_deep_extend("force", capabilities, require("cmp_nvim_lsp").default_capabilities())
+
+        -- Enable the following language servers
+        --  Add any additional override configuration in the following tables. Available keys are:
+        --  - cmd (table): Override the default command used to start the server
+        --  - filetypes (table): Override the default list of associated filetypes for the server
+        --  - capabilities (table): Override fields in capabilities. Can be used to disable certain LSP features.
+        --  - settings (table): Override the default settings passed when initializing the server.
+        --        For example, to see the options for `lua_ls`, you could go to: https://luals.github.io/wiki/settings/
+        local servers = {
+            rust_analyzer = {
+                settings = {
+                    ["rust-analyzer"] = {
+                        check = {
+                            command = "clippy",
+                        },
+                        procMacro = {
+                            ignored = {
+                                leptos_macro = {
+                                    -- "component",
+                                    "server",
+                                },
+                            },
+                        },
+                    },
+                },
             },
-          },
-          telemetry = { enable = false },
-        },
-      },
-    })
-  end,
+            lua_ls = {
+                settings = {
+                    Lua = {
+                        runtime = { version = "LuaJIT" },
+                        workspace = {
+                            checkThirdParty = false,
+                            library = {
+                                "${3rd}/luv/library",
+                                unpack(vim.api.nvim_get_runtime_file("", true)),
+                            },
+                            -- If lua_ls is really slow on your computer, you can try this instead:
+                            -- library = { vim.env.VIMRUNTIME },
+                        },
+                        telemetry = { enable = false },
+                        -- diagnostics = { disable = { 'missing-fields' } },
+                    },
+                },
+            },
+            nil_ls = {},
+        }
+
+        for server_name, server in pairs(servers) do
+            require("lspconfig")[server_name].setup({
+                cmd = server.cmd,
+                settings = server.settings,
+                filetypes = server.filetypes,
+                capabilities = vim.tbl_deep_extend("force", {}, capabilities, server.capabilities or {}),
+            })
+        end
+    end,
 }
